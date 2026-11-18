@@ -29,6 +29,13 @@
 | 换弹时长 | 2 秒 |
 | 射击模式 | 自动；数据资产也支持半自动配置 |
 
+### 瞄准偏移与第一人称视角
+
+- **上下瞄准偏移**：新增 `AO_Rifle_Pitch`，由 `ABP_Character` 根据瞄准俯仰角驱动，范围为 -90°～90°。左右转向启用角色的“使用控制器旋转 Yaw”，角色本体不跟随控制器 Pitch / Roll 倾斜。
+- **相机与人物穿模修复**：第一人称相机固定在胶囊体的眼位，不再跟随头骨动画；仅隐藏第一人称头颈，第三人称模型保留完整头颈。
+- **持枪视野修复**：`ABP_FP` 使用相机空间的右手目标和双手 FABRIK，让武器在抬头、低头和转向时保持在视野右下方，同时维持左手握把位置。第一人称 FOV 为 90。
+- **可调持枪位置**：`ABP_FP` 的 `FirstPersonView` 分类提供 `ViewGripOffset`，用于调整第一人称武器的位置与姿态。
+
 ### UE 模板与现有资源
 
 工程保留 FirstPerson、Horror、Shooter 模板地图及其输入、角色、武器、UI、AI / StateTree 等配套代码和资源。这些模板内容与自定义 `Combat` / `Weapons` 系统分开保留，不代表已经完成了统一的恐怖或竞技游戏模式。
@@ -42,6 +49,7 @@
 - Visual Studio 2022，安装“使用 C++ 的游戏开发”、MSVC 和 Windows SDK。
 - Git。仓库直接包含 `.uasset` / `.umap` 二进制资源，正常克隆即可获得完整工程。
 - 使用 UE 自带的 GameplayAbilities、EnhancedInput、StateTree / GameplayStateTree 等模块；项目插件配置见 `FPSPrototype.uproject`。
+- 编辑器自动化已启用 UE 5.8 自带的实验性 `ModelContextProtocol` 和 `AllToolsets` 插件；引擎插件本体不随项目上传。
 
 ```powershell
 git clone https://github.com/w-william/FPSPrototype.git
@@ -76,7 +84,15 @@ $Project = (Resolve-Path '.\FPSPrototype.uproject').Path
 
 ## 已完成的验证
 
-以下为 **2026-11-18、UE 5.8.4** 的本机验证结果：
+### 瞄准与第一人称视角修复验证
+
+**2026-11-18、UE 5.8.4**：角色和动画蓝图编译通过；双客户端验证覆盖平视、抬头 80°、低头 70°及左右转向，连续转向采样 70 帧。相机眼位保持稳定，第一人称头颈不进入镜头，武器保持在视野右下方；动态右手目标误差小于 0.03 cm，左手握把误差小于 0.07 cm。
+
+实际客户端开火与换弹通过：`30/90 → 26/90 → RELOADING → 30/86`。本轮修复完成了蓝图编译及 PIE 运行验证，尚未对这些新资产重新执行 Windows 打包验证。上述视角验证使用仓库外的临时编辑器脚本，不包含在仓库内的 7 项 C++ 自动测试中。
+
+### 此前 UE 5.8 迁移与核心玩法验证
+
+以下为 **2026-11-18、UE 5.8.4** 在本轮瞄准与视角修复前完成的本机验证结果：
 
 | 验证项目 | 结果 |
 | --- | --- |
