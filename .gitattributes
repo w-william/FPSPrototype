@@ -1,0 +1,4 @@
+# Normalize text and store Unreal assets as binary files.
+* text=auto
+*.uasset binary
+*.umap binary

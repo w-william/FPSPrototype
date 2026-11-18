@@ -1,0 +1,49 @@
+# Unreal Engine generated data and build products
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+Build/**/FileOpenOrder/
+
+# Local editor state and developer-only assets
+Config/DefaultEditorPerProjectUserSettings.ini
+Content/Developers/
+Content/Collections/
+
+# IDE and local workspace files
+.vs/
+.vscode/
+.idea/
+*.sln
+*.suo
+*.opensdf
+*.sdf
+*.VC.db
+*.VC.opendb
+*.code-workspace
+*.sln.DotSettings.user
+.ignore
+
+# Packaged builds, logs and temporary files
+/Packaged/
+/Packages/
+/Releases/
+/Validation/
+/Backups/
+*.log
+*.tmp
+*.bak
+*.dmp
+*.pdb
+*.obj
+*.pch
+
+# Local credentials and environment configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+.DS_Store
+Thumbs.db
+Desktop.ini

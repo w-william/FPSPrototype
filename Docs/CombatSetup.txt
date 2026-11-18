@@ -1,0 +1,44 @@
+FPSPrototype 射击与 GAS 伤害闭环
+
+使用：打开 MainMap，设置 2 个玩家后运行 PIE。左键按住连发，松开停止；R 键换弹。
+HUD 显示生命值、弹药和换弹状态；服务器确认造成伤害后准星短暂变红。
+默认生命值 100，每发伤害 25，弹匣 30，备弹 90，射速 600 RPM，换弹 2 秒。
+伤害、射速、射程、换弹时间与自动/半自动参数来自 Content/0_/Datas/DA_Rifle。
+
+接线：
+BP_Character 的父类为 FPSCombatCharacter。
+现有生成武器、设置 CurrentWeapon、附加 HandGrip_R 的流程保留；附加后调用 EquipCombatWeapon。
+BP_GameMode 使用 FPSCombatHUD。移动、相机、持枪动画和插槽保持原有配置。
+左键和 R 通过角色的 Enhanced Input 映射在运行时添加，无需手动添加输入资产。
+
+运行链路：
+左键 -> Combat.StartFire -> ServerSetTriggerHeld -> TryFireShot
+-> 检查武器归属/附加、存活、换弹、射速、弹药
+-> 服务器准星射线 + 枪口遮挡射线 -> ApplyPointDamage
+-> FPSCombatCharacter.TakeDamage -> FPSDamageEffect(Data.Damage)
+-> FPSHealthSet.IncomingDamage -> Health 扣减并限制在 0..MaxHealth
+-> GAS 属性复制、HUD 更新；生命值为 0 时停止移动和开火。
+
+换弹由服务器计时，结束时才转移弹药；换弹中不能射击，卸下武器/死亡取消换弹。
+客户端不提交命中对象或伤害数值。弹药只复制给武器拥有者，生命值复制给相关客户端。
+OnShotFired、OnHitConfirmed、OnHealthChanged、OnDied 可供蓝图接后续反馈。
+
+当前范围：射线即时命中，人物以胶囊体作为基础命中体；所有可受伤目标均按基础伤害处理。
+已有临时弹道线和命中标记。未接入枪口特效、音效、开火/换弹蒙太奇、爆头倍率或复活流程。
+移动射击没有历史回溯命中补偿。
+
+验证（2026-11-18，UE 5.8.4）：
+7 项仓库内原生武器/战斗自动测试通过；5 个核心蓝图编译及角色、HUD、动画、武器参数检查通过。
+双玩家 Listen Server PIE 实际网络测试通过，包括客户端 RPC 射击、服务器 GAS 扣血、
+血量复制、拥有者弹药复制、换弹和死亡后的射击拦截。网络测试使用独立的临时编辑器宿主，
+其运行时代码与当前工程一致；该测试宿主不包含在本仓库内。
+
+Windows Development 完成 Build/Cook/Stage/Pak/IoStore/Archive，包含 MainMap、Lvl_FirstPerson、
+Lvl_Horror、Lvl_Shooter 四张地图；Cook 为 0 错误、0 警告。
+打包游戏在真实 DX12 离屏渲染下完成开火、换弹、移动和正常退出；截图显示弹药
+30/90 -> 20/90 -> RELOADING -> 30/80，HP 100/100；原生命令操作测试及普通启动的退出码均为 0。
+打包根目录的 FPSPrototype.exe 也已验证可启动并正常退出。
+
+限制：CSV 性能采样模式的两次运行出现退出码 777003，尚未修复；普通运行及不启用 CSV 的
+完整操作测试通过。当前验证不覆盖全部玩法、音频、性能、压力测试或 Shipping 发布验收。
+StateTree API 弃用提示和 GameplayCue 搜索路径提示仍待后续整理。
